@@ -6,8 +6,8 @@ import (
 	"scraper/src/extra"
 	"scraper/src/urlManager"
 	"sync"
+	"os"
 )
-
 
 var (
 	Output []customTypes.Page = []customTypes.Page{}
@@ -15,7 +15,14 @@ var (
 )
 
 func main() {
-	search("vsauce", 20, 5)
+
+	query := "what is duckduckgo"
+
+	if len(os.Args) > 1 {
+		query = fmt.Sprint(os.Args[1:])
+	}
+
+	search(query, 20, 10)
 }
 
 func search(query string, totalUrls int, maxUrlsPerPages int) {
