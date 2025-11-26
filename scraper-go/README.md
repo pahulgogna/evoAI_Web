@@ -8,7 +8,6 @@ This Directory contains the web scraper for EvoAI.
 .\
 ├── go.mod\
 ├── go.sum\
-├── main\
 ├── output\
 ├── src\
 │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── customTypes\
