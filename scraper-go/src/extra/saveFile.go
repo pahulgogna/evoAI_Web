@@ -1,4 +1,4 @@
-package main
+package extra
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"scraper/src/customTypes"
 )
 
 var invalidFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
@@ -39,7 +40,7 @@ func filenameFromURL(raw string) string {
 	return base + ".html"
 }
 
-func WritePageToFile(p Page) (string, error) {
+func WritePageToFile(p customTypes.Page) (string, error) {
 	// Ensure output directory exists
 	outDir := "output"
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
@@ -47,11 +48,11 @@ func WritePageToFile(p Page) (string, error) {
 	}
 
 	// Build file path
-	filename := filenameFromURL(p.source)
+	filename := filenameFromURL(p.Source)
 	fullPath := filepath.Join(outDir, filename)
 
 	// Write file
-	if err := os.WriteFile(fullPath, []byte(p.body), 0o644); err != nil {
+	if err := os.WriteFile(fullPath, []byte(p.Body), 0o644); err != nil {
 		return "", fmt.Errorf("writing file: %w", err)
 	}
 

@@ -1,8 +1,13 @@
-package main
+package extra
 
 import "fmt"
 
-func displayProgress(done int, total int, finished bool) {
+func DisplayProgress(done int, total int, finished bool) {
+	
+	if total == 0 {
+        return
+    }
+
 	barLen := ((done * 100)/ total)
 	fmt.Printf("\r[")
 

@@ -2,50 +2,50 @@ package main
 
 import (
 	"fmt"
+	"scraper/src/customTypes"
+	"scraper/src/extra"
+	"scraper/src/urlManager"
 	"sync"
 )
 
-var (
-	seen map[string]int8 = map[string]int8{}
-	MapMutex sync.Mutex
-)
 
 var (
-	output []Page = []Page{}
+	Output []customTypes.Page = []customTypes.Page{}
 	OutMutex sync.Mutex
 )
 
 func main() {
-	search("", 2, 10)
+	search("vsauce", 20, 5)
 }
 
-func search(query string, level int, maxUrlsPerPages int) {
+func search(query string, totalUrls int, maxUrlsPerPages int) {
 
-	links := performDdgSearch(query)[:10]
+	performDdgSearch(query, 10)
 
-	if links == nil {
-		fmt.Println("could not perform search")
-		return
-	}
-
-	for _, link := range links {
+	for i := 0; i < maxUrlsPerPages; i++ {
 		
+		link := urlManager.GetUrl()
+
+		if link == "" {
+			break
+		}
+
 		ScrapeWg.Add(1)
-		go func(l string, lev int) {
+		go func(l string) {
 			defer ScrapeWg.Done()
-			scrape(l, lev, maxUrlsPerPages)
-		}(link, level)
+			scrape(l, totalUrls, maxUrlsPerPages)
+		}(link)
 
 	}
 	ScrapeWg.Wait()
 
-	totalPagesFound := len(output)
+	totalPagesFound := len(Output)
 
 	fmt.Printf("saving %d file/s\n",totalPagesFound)
 
-	for i, page := range output {
-		displayProgress(i, totalPagesFound, false)
-		WritePageToFile(page)
+	for i, page := range Output {
+		extra.DisplayProgress(i, totalPagesFound, false)
+		extra.WritePageToFile(page)
 	}
-	displayProgress(totalPagesFound, totalPagesFound, true)
+	extra.DisplayProgress(totalPagesFound, totalPagesFound, true)
 }

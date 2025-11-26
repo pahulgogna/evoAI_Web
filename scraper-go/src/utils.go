@@ -7,72 +7,75 @@ import (
 	"strings"
 	"sync"
 	"golang.org/x/net/html"
+	"scraper/src/customTypes"
+	"scraper/src/urlManager"
 )
 
 var ScrapeWg sync.WaitGroup
 
-func sendRequest(url string) (*html.Node, Page) {
+func sendRequest(url string) (*html.Node, customTypes.Page) {
 
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return nil, Page{}
+		return nil, customTypes.Page{}
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	
 	if err != nil {
-		return nil, Page{}
+		return nil, customTypes.Page{}
 	}
 
 	rootNode, err := html.Parse(strings.NewReader(string(body)))
     if err != nil {
-        return nil, Page{}
+        return nil, customTypes.Page{}
     }
 
-	var page Page = Page{
-		source: url,
-		body: string(body),
+	var page customTypes.Page = customTypes.Page{
+		Source: url,
+		Body: string(body),
 	}
 	
 	return rootNode, page
 }
 
-func findLinks(n *html.Node) (links []string) {
+func findLinks(n *html.Node, filterDDG bool) {
 
 	if isSkipableDiv(n) {
-		return []string{}
+		return
 	}
     
 	if n.Type == html.ElementNode && (n.Data == "a") {
         for _, attr := range n.Attr {
             if attr.Key == "href" {
-				isValid, url := isUrlValid(attr.Val, "")
+				isValid, url := urlManager.IsUrlValid(attr.Val, "")
+
+				if filterDDG {
+					url = UnwrapDuckDuckGoURL(url)
+				}
+
 				if isValid {
-					links = append(links, url)
+					urlManager.AddUrl(url)
 				}
             }
         }
     }
 
     for c := n.FirstChild; c != nil; c = c.NextSibling {
-        links = append(links, findLinks(c)...)
+        findLinks(c, filterDDG)
     }
-    return links
 }
 
-func scrape(url string, level int, maxLinksPerPage int) bool {
+func scrape(url string, totalLinksToProcess int, maxLinksPerPage int) bool {
 	
-	MapMutex.Lock()
-	if _, ok := seen[url]; ok || level == -1 {
-		MapMutex.Unlock()
-		return !ok
+	if urlManager.GetProcessedUrlsCount() >= totalLinksToProcess {
+		return false
 	}
-
-	seen[url] = 1
-	MapMutex.Unlock()
-
+	fmt.Println("Processed urls: ",  urlManager.GetProcessedUrlsCount())
+	
+	urlManager.IncrementProcessCounter()
 	rootNode, page := sendRequest(url)
 
 	if rootNode == nil {
@@ -80,60 +83,35 @@ func scrape(url string, level int, maxLinksPerPage int) bool {
 	}
 
 	OutMutex.Lock()
-	output = append(output, page)
+	Output = append(Output, page)
 	OutMutex.Unlock()
 
-	
-	links := findLinks(rootNode)
-	numLinks := len(links)
+	findLinks(rootNode, false)
 
-	links = links[(numLinks/5):(numLinks * 3)/5]
-	if len(links) > 10 {
-		links = links[:maxLinksPerPage]
-	}
+	for i := 0; i < maxLinksPerPage; i++ {
 
-	for i, link := range links {
+		link := urlManager.GetUrl()
+		if link == "" {
+			continue
+		}
 		
 		if i == maxLinksPerPage - 1 {
 			break
 		}
 
-		valid, link := isUrlValid(link, url)
+		valid, link := urlManager.IsUrlValid(link, url)
 		if !valid {
 			continue
 		}
 		ScrapeWg.Add(1)
 
-		go func(l string, lev int) {
+		go func(l string) {
 			defer ScrapeWg.Done()
-			scrape(l, lev, maxLinksPerPage)
-		}(link, level-1)
+			scrape(l, totalLinksToProcess, maxLinksPerPage)
+		}(link)
 	}
-	fmt.Printf("scraped url %s, level: %d\n", url, level)
+	
 	return true
-}
-
-func isUrlValid(url string, root string) (bool, string) {
-
-	url = strings.TrimSpace(url)
-
-	if strings.HasPrefix(url, "http") || strings.HasPrefix(url, "https") {
-		return true, url
-	} 
-	if strings.HasPrefix(url, "#") {
-		return false, url
-	}
-	if strings.HasPrefix(url, "//") {
-		return true, fmt.Sprintf("https:%s", url)
-	}
-	if strings.HasPrefix(url, "/") {
-		if root == "" {
-			return false, ""
-		}
-		return true, fmt.Sprintf("%s%s", root, url)
-	}
-
-	return false, url
 }
 
 func fromHtmlBytesToRoot(body []byte) (*html.Node, error) {
