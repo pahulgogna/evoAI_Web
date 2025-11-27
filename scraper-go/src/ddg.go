@@ -33,7 +33,6 @@ func httpGETFromDDG(url string) (*http.Response, error) {
   req.Header.Set("sec-fetch-site", "same-origin")
 
   client := http.Client{}
-  fmt.Println("sending req")
   return client.Do(req)
 }
 
@@ -94,7 +93,7 @@ func performDdgSearch(query string, results int) {
     return
   }
 
-  findLinks(resultsDiv, true)
+  findLinks(resultsDiv, true, 0)
 
 }
 

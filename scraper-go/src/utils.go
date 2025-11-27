@@ -41,7 +41,7 @@ func sendRequest(url string) (*html.Node, customTypes.Page) {
 	return rootNode, page
 }
 
-func findLinks(n *html.Node, filterDDG bool) {
+func findLinks(n *html.Node, filterDDG bool, level int) {
 
 	if isSkipableDiv(n) {
 		return
@@ -57,18 +57,18 @@ func findLinks(n *html.Node, filterDDG bool) {
 				}
 
 				if isValid {
-					urlManager.AddUrl(url)
+					urlManager.AddUrl(url, Query, level)
 				}
             }
         }
     }
 
     for c := n.FirstChild; c != nil; c = c.NextSibling {
-        findLinks(c, filterDDG)
+        findLinks(c, filterDDG, level)
     }
 }
 
-func scrape(url string, totalLinksToProcess int, maxLinksPerPage int) bool {
+func scrape(link *customTypes.StoreUrl, totalLinksToProcess int, maxLinksPerPage int) bool {
 	
 	if urlManager.GetProcessedUrlsCount() >= totalLinksToProcess {
 		return false
@@ -76,7 +76,7 @@ func scrape(url string, totalLinksToProcess int, maxLinksPerPage int) bool {
 	fmt.Println("Processed urls: ",  urlManager.GetProcessedUrlsCount())
 	
 	urlManager.IncrementProcessCounter()
-	rootNode, page := sendRequest(url)
+	rootNode, page := sendRequest(link.Url)
 
 	if rootNode == nil {
 		return false
@@ -86,30 +86,32 @@ func scrape(url string, totalLinksToProcess int, maxLinksPerPage int) bool {
 	Output = append(Output, page)
 	OutMutex.Unlock()
 
-	findLinks(rootNode, false)
+	findLinks(rootNode, false, link.Level + 1)
 
-	for i := 0; i < maxLinksPerPage; i++ {
+	// for i := 0; i < maxLinksPerPage; i++ {
 
-		link := urlManager.GetUrl()
-		if link == "" {
-			continue
-		}
+	// 	link := urlManager.GetUrl()
+	// 	if link == nil {
+	// 		continue
+	// 	}
 		
-		if i == maxLinksPerPage - 1 {
-			break
-		}
+	// 	if i == maxLinksPerPage - 1 {
+	// 		break
+	// 	}
 
-		valid, link := urlManager.IsUrlValid(link, url)
-		if !valid {
-			continue
-		}
-		ScrapeWg.Add(1)
+	// 	valid, l := urlManager.IsUrlValid(link.Url, link.Url)
+	// 	if !valid {
+	// 		continue
+	// 	}
+	// 	link.Url = l
 
-		go func(l string) {
-			defer ScrapeWg.Done()
-			scrape(l, totalLinksToProcess, maxLinksPerPage)
-		}(link)
-	}
+	// 	ScrapeWg.Add(1)
+
+	// 	go func(l *customTypes.StoreUrl) {
+	// 		defer ScrapeWg.Done()
+	// 		scrape(l, totalLinksToProcess, maxLinksPerPage)
+	// 	}(link)
+	// }
 	
 	return true
 }

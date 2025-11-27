@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"scraper/src/customTypes"
 	"scraper/src/extra"
 	"scraper/src/urlManager"
+	"strings"
 	"sync"
-	"os"
 )
 
 var (
@@ -14,31 +15,32 @@ var (
 	OutMutex sync.Mutex
 )
 
+var Query string = "what is duckduckgo"
+
 func main() {
-
-	query := "what is duckduckgo"
-
 	if len(os.Args) > 1 {
-		query = fmt.Sprint(os.Args[1:])
+		Query = strings.Join(os.Args[1:], " ")
 	}
 
-	search(query, 20, 10)
+	search(Query, 20, 5)
 }
 
 func search(query string, totalUrls int, maxUrlsPerPages int) {
 
 	performDdgSearch(query, 10)
 
-	for i := 0; i < maxUrlsPerPages; i++ {
+	for range totalUrls {
 		
 		link := urlManager.GetUrl()
 
-		if link == "" {
+		if link == nil {
 			break
 		}
 
+		fmt.Printf("url: %s, priority: %d\n", link.Url, link.Priority)
+
 		ScrapeWg.Add(1)
-		go func(l string) {
+		go func(l *customTypes.StoreUrl) {
 			defer ScrapeWg.Done()
 			scrape(l, totalUrls, maxUrlsPerPages)
 		}(link)
