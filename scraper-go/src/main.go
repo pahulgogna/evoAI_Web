@@ -22,14 +22,16 @@ func main() {
 		Query = strings.Join(os.Args[1:], " ")
 	}
 
-	search(Query, 20, 5)
+	search(Query, 5)
 }
 
-func search(query string, totalUrls int, maxUrlsPerPages int) {
+func search(query string, totalResults int) {
 
-	performDdgSearch(query, 10)
+	performDdgSearch(query)
 
-	for range totalUrls {
+	callsCount := 0
+
+	for totalResults > len(Output) {
 		
 		link := urlManager.GetUrl()
 
@@ -37,24 +39,21 @@ func search(query string, totalUrls int, maxUrlsPerPages int) {
 			break
 		}
 
-		fmt.Printf("url: %s, priority: %d\n", link.Url, link.Priority)
-
 		ScrapeWg.Add(1)
+		callsCount += 1
 		go func(l *customTypes.StoreUrl) {
 			defer ScrapeWg.Done()
-			scrape(l, totalUrls, maxUrlsPerPages)
+			scrape(l)
+			callsCount -= 1
 		}(link)
-
+		
+		if callsCount == totalResults {
+			ScrapeWg.Wait()
+		}
 	}
 	ScrapeWg.Wait()
 
-	totalPagesFound := len(Output)
+	jsonData:= extra.GetJSON("out.json", Output)
 
-	fmt.Printf("saving %d file/s\n",totalPagesFound)
-
-	for i, page := range Output {
-		extra.DisplayProgress(i, totalPagesFound, false)
-		extra.WritePageToFile(page)
-	}
-	extra.DisplayProgress(totalPagesFound, totalPagesFound, true)
+	fmt.Println(jsonData)
 }

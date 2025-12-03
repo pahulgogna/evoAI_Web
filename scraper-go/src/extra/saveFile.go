@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"scraper/src/customTypes"
+	"encoding/json"
 )
 
 var invalidFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
@@ -57,4 +58,13 @@ func WritePageToFile(p customTypes.Page) (string, error) {
 	}
 
 	return fullPath, nil
+}
+
+func GetJSON(filename string, data interface{}) string {
+    jsonBytes, err := json.MarshalIndent(data, "", "  ")
+    if err != nil {
+        return ""
+    }
+
+    return string(jsonBytes)
 }
