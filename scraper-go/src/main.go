@@ -15,7 +15,7 @@ func main() {
     router := gin.Default()
     router.POST("/search", getSearchResults)
 
-    router.Run("localhost:8080")
+    router.Run(fmt.Sprintf("0.0.0.0:%d", config.PORT))
 }
 
 func getSearchResults(c *gin.Context) {
