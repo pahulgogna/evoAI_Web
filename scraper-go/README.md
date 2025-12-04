@@ -20,4 +20,4 @@ This Directory contains the web scraper for EvoAI.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── urlManager\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── main.go\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── provider.go\
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── utils.go\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── utils.go
