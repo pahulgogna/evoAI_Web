@@ -60,7 +60,7 @@ func WritePageToFile(p customTypes.Page) (string, error) {
 	return fullPath, nil
 }
 
-func GetJSON(filename string, data interface{}) string {
+func GetJSON(data interface{}) string {
     jsonBytes, err := json.MarshalIndent(data, "", "  ")
     if err != nil {
         return ""

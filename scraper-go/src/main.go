@@ -2,58 +2,45 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"scraper/src/config"
 	"scraper/src/customTypes"
-	"scraper/src/extra"
+	"scraper/src/searching"
 	"scraper/src/urlManager"
-	"strings"
-	"sync"
-)
+	"scraper/src/utils"
 
-var (
-	Output []customTypes.Page = []customTypes.Page{}
-	OutMutex sync.Mutex
+	"github.com/gin-gonic/gin"
 )
-
-var Query string = "what is duckduckgo"
 
 func main() {
-	if len(os.Args) > 1 {
-		Query = strings.Join(os.Args[1:], " ")
-	}
+    router := gin.Default()
+    router.POST("/search", getSearchResults)
 
-	search(Query, 5)
+    router.Run("localhost:8080")
 }
 
-func search(query string, totalResults int) {
+func getSearchResults(c *gin.Context) {
 
-	performDdgSearch(query)
+	var req customTypes.SearchRequest
 
-	callsCount := 0
-
-	for totalResults > len(Output) {
-		
-		link := urlManager.GetUrl()
-
-		if link == nil {
-			break
-		}
-
-		ScrapeWg.Add(1)
-		callsCount += 1
-		go func(l *customTypes.StoreUrl) {
-			defer ScrapeWg.Done()
-			scrape(l)
-			callsCount -= 1
-		}(link)
-		
-		if callsCount == totalResults {
-			ScrapeWg.Wait()
-		}
+	if err := c.BindJSON(&req); err != nil {
+		fmt.Printf("Error: could not parse the request body: %v\n", err)
+		c.AbortWithStatus(400)
+		return
 	}
-	ScrapeWg.Wait()
+	if req.RequiredResults <= 0 || req.Query == "" {
+		c.AbortWithStatus(400)
+		return
+	}
+	fmt.Println(req)
+	if req.DnsAddress == "" {
+		req.DnsAddress = config.DefaultDNSAddress
+	}
 
-	jsonData:= extra.GetJSON("out.json", Output)
+	fmt.Printf("/search : query-> %s, results-> %d \n", req.Query, req.RequiredResults)
 
-	fmt.Println(jsonData)
+	c.IndentedJSON(200, searching.Search(req.Query, req.RequiredResults, req.DnsAddress))
+	urlManager.ClearQueue()
+	utils.OutMutex.Lock()
+	utils.Output = []customTypes.Page{}
+	utils.OutMutex.Unlock()
 }

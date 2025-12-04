@@ -11,3 +11,9 @@ type StoreUrl struct {
 	Index 	 int
 	Level 	 int
 }
+
+type SearchRequest struct {
+	Query            string `json:"query"`
+	RequiredResults  int    `json:"required_results"`
+	DnsAddress       string `json:"dns_address,omitempty"`
+}

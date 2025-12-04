@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"io"
@@ -7,14 +7,26 @@ import (
 	"scraper/src/urlManager"
 	"strings"
 	"sync"
+	"time"
+
 	"golang.org/x/net/html"
+)
+
+var (
+	Output []customTypes.Page = []customTypes.Page{}
+	OutMutex sync.Mutex
 )
 
 var ScrapeWg sync.WaitGroup
 
-func sendRequest(url string) (*html.Node, customTypes.Page) {
+func sendRequest(url string, dnsAddress string) (*html.Node, customTypes.Page) {
 
-	resp, err := http.Get(url)
+	client := http.Client{
+		Timeout: 10 * time.Second,
+		Transport: GetTransportForRequest(dnsAddress),
+	}
+
+	resp, err := client.Get(url)
 
 	if err != nil {
 		return nil, customTypes.Page{}
@@ -40,45 +52,18 @@ func sendRequest(url string) (*html.Node, customTypes.Page) {
 	return rootNode, page
 }
 
-func findLinks(n *html.Node, filterDDG bool, level int) {
-
-	if isSkipableDiv(n) {
-		return
-	}
-
-	if n.Type == html.ElementNode && (n.Data == "a") {
-		for _, attr := range n.Attr {
-			if attr.Key == "href" {
-				isValid, url := urlManager.IsUrlValid(attr.Val, "")
-
-				if filterDDG {
-					url = UnwrapDuckDuckGoURL(url)
-				}
-
-				if isValid {
-					urlManager.AddUrl(url, Query, level)
-				}
-			}
-		}
-	}
-
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		findLinks(c, filterDDG, level)
-	}
-}
-
-func scrape(link *customTypes.StoreUrl) bool {
+func Scrape(link *customTypes.StoreUrl, query string, dnsAddress string) bool {
 
 	urlManager.IncrementProcessCounter()
-	rootNode, page := sendRequest(link.Url)
+	rootNode, page := sendRequest(link.Url, dnsAddress)
 
 	if rootNode == nil {
 		return false
 	}
 	
-	page.Body = parseHtmlToContent(page.Body)
+	page.Body = ParseHtmlToContent(page.Body)
 	
-	if len(page.Body) <= 100 {
+	if len(page.Body) <= 200 {
 		return false
 	}
 
@@ -86,12 +71,12 @@ func scrape(link *customTypes.StoreUrl) bool {
 	Output = append(Output, page)
 	OutMutex.Unlock()
 
-	findLinks(rootNode, false, link.Level+1)
+	FindLinks(rootNode, false, link.Level+1, query)
 
 	return true
 }
 
-func fromHtmlBytesToRoot(body []byte) (*html.Node, error) {
+func FromHtmlBytesToRoot(body []byte) (*html.Node, error) {
 	rootNode, err := html.Parse(strings.NewReader(string(body)))
 	if err != nil {
 		return nil, err
@@ -99,7 +84,7 @@ func fromHtmlBytesToRoot(body []byte) (*html.Node, error) {
 	return rootNode, err
 }
 
-func findDivByID(n *html.Node, id string) *html.Node {
+func FindDivByID(n *html.Node, id string) *html.Node {
 	if n.Type == html.ElementNode && n.Data == "div" {
 		for _, attr := range n.Attr {
 			if attr.Key == "id" && attr.Val == id {
@@ -108,7 +93,7 @@ func findDivByID(n *html.Node, id string) *html.Node {
 		}
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if res := findDivByID(c, id); res != nil {
+		if res := FindDivByID(c, id); res != nil {
 			return res
 		}
 	}
@@ -139,32 +124,3 @@ func normalizeWhitespace(input string) string {
 }
 
 
-func parseHtmlToContent(htmlString string) string {
-	doc, err := html.Parse(strings.NewReader(htmlString))
-	if err != nil {
-		return ""
-	}
-
-	var sb strings.Builder
-	
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		
-		if isSkipableDiv(n) {
-			return
-		}
-
-		if n.Type == html.TextNode {
-			sb.WriteString(n.Data)
-			sb.WriteString(" ") 
-		}
-
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
-		}
-	}
-
-	f(doc)
-
-	return normalizeWhitespace(sb.String())
-}

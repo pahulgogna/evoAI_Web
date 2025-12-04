@@ -95,6 +95,7 @@ func AddUrl(url string, query string, level int) bool {
 }
 
 func GetUrl() *customTypes.StoreUrl {
+
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -122,4 +123,13 @@ func GetProcessedUrlsCount() int {
 	processMutex.Lock()
 	defer processMutex.Unlock()
 	return processCounter
+}
+
+func ClearQueue() {
+	mutex.Lock()
+	defer mutex.Unlock()
+	Links = make(PriorityQueue, 0)
+	heap.Init(&Links)
+	seen = make(map[string]struct{})
+	initialized = true
 }
