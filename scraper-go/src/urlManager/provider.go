@@ -1,135 +1,131 @@
 package urlManager
 
 import (
-	"container/heap"
-	"scraper/src/customTypes"
-	"sync"
+    "container/heap"
+    "scraper/src/customTypes"
+    "sync"
 )
 
+// PriorityQueue implements heap.Interface and holds Items.
 type PriorityQueue []*customTypes.StoreUrl
 
-var (
-	Links       PriorityQueue
-	mutex       sync.Mutex
-	initialized bool
-)
+// UrlQueue encapsulates the priority queue state to allow multiple instances.
+type UrlQueue struct {
+    links          PriorityQueue
+    mutex          sync.Mutex
+    seen           map[string]struct{}
+    processCounter int
+    processMutex   sync.Mutex
+}
 
-var (
-	seen = make(map[string]struct{})
-)
-
-var (
-	processCounter int
-	processMutex   sync.Mutex
-)
+// NewUrlQueue creates and initializes a new isolated queue instance.
+func NewUrlQueue() *UrlQueue {
+    uq := &UrlQueue{
+        links: make(PriorityQueue, 0),
+        seen:  make(map[string]struct{}),
+    }
+    heap.Init(&uq.links)
+    return uq
+}
 
 func (pq PriorityQueue) Len() int { return len(pq) }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	// Higher priority items come first
-	return pq[i].Priority > pq[j].Priority
+    // Higher priority items come first
+    return pq[i].Priority > pq[j].Priority
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
-	pq[i], pq[j] = pq[j], pq[i]
-	pq[i].Index = i
-	pq[j].Index = j
+    pq[i], pq[j] = pq[j], pq[i]
+    pq[i].Index = i
+    pq[j].Index = j
 }
 
 func (pq *PriorityQueue) Push(x any) {
-	n := len(*pq)
-	item := x.(*customTypes.StoreUrl)
-	item.Index = n
-	*pq = append(*pq, item)
+    n := len(*pq)
+    item := x.(*customTypes.StoreUrl)
+    item.Index = n
+    *pq = append(*pq, item)
 }
 
 func (pq *PriorityQueue) Pop() any {
-	old := *pq
-	n := len(old)
-	item := old[n-1]
-	old[n-1] = nil  // allow GC to reclaim the item
-	item.Index = -1 // for safety
-	*pq = old[0 : n-1]
-	return item
+    old := *pq
+    n := len(old)
+    item := old[n-1]
+    old[n-1] = nil  // allow GC to reclaim the item
+    item.Index = -1 // for safety
+    *pq = old[0 : n-1]
+    return item
 }
 
 // update modifies the priority and value of an Item in the queue.
-// Must be called while holding the mutex.
 func (pq *PriorityQueue) update(item *customTypes.StoreUrl, url string, priority int) {
-	item.Url = url
-	item.Priority = priority
-	heap.Fix(pq, item.Index)
+    item.Url = url
+    item.Priority = priority
+    heap.Fix(pq, item.Index)
 }
 
-// initHeap initializes the heap if not already initialized.
-// Must be called while holding the mutex.
-func initHeap() {
-	if !initialized {
-		Links = make(PriorityQueue, 0)
-		heap.Init(&Links)
-		initialized = true
-	}
+// AddUrl adds a URL to the specific queue instance.
+func (uq *UrlQueue) AddUrl(url string, query string, level int) bool {
+    uq.mutex.Lock()
+    defer uq.mutex.Unlock()
+
+    if _, ok := uq.seen[url]; ok {
+        return false
+    }
+
+    isValid, validUrl := IsUrlValid(url, "")
+    if !isValid {
+        return false
+    }
+
+    uq.seen[url] = struct{}{}
+
+    urlItem := &customTypes.StoreUrl{Priority: RankUrl(url, query, level), Url: validUrl}
+    heap.Push(&uq.links, urlItem)
+
+    return true
 }
 
-func AddUrl(url string, query string, level int) bool {
-	mutex.Lock()
-	defer mutex.Unlock()
+// GetUrl retrieves the highest priority URL from the specific queue instance.
+func (uq *UrlQueue) GetUrl() *customTypes.StoreUrl {
+    uq.mutex.Lock()
+    defer uq.mutex.Unlock()
 
-	initHeap()
-	
-	if _, ok := seen[url]; ok { 
-		return false
-	}
-	
-	isValid, validUrl := IsUrlValid(url, "")
-	if !isValid {
-		return false
-	}
+    if uq.links.Len() == 0 {
+        return nil
+    }
 
-	seen[url] = struct{}{}
-
-	urlItem := &customTypes.StoreUrl{Priority: RankUrl(url, query, level), Url: validUrl}
-	heap.Push(&Links, urlItem)
-
-	return true
+    link := heap.Pop(&uq.links).(*customTypes.StoreUrl)
+    return link
 }
 
-func GetUrl() *customTypes.StoreUrl {
-
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	if !initialized || Links.Len() == 0 {
-		return nil
-	}
-
-	link := heap.Pop(&Links).(*customTypes.StoreUrl)
-	return link
+// GetQueueLength returns the current size of the queue.
+func (uq *UrlQueue) GetQueueLength() int {
+    uq.mutex.Lock()
+    defer uq.mutex.Unlock()
+    return uq.links.Len()
 }
 
-func GetQueueLength() int {
-	mutex.Lock()
-	defer mutex.Unlock()
-	return Links.Len()
+// IncrementProcessCounter increments the processed count for this session.
+func (uq *UrlQueue) IncrementProcessCounter() {
+    uq.processMutex.Lock()
+    defer uq.processMutex.Unlock()
+    uq.processCounter++
 }
 
-func IncrementProcessCounter() {
-	processMutex.Lock()
-	defer processMutex.Unlock()
-	processCounter++
+// GetProcessedUrlsCount returns the processed count for this session.
+func (uq *UrlQueue) GetProcessedUrlsCount() int {
+    uq.processMutex.Lock()
+    defer uq.processMutex.Unlock()
+    return uq.processCounter
 }
 
-func GetProcessedUrlsCount() int {
-	processMutex.Lock()
-	defer processMutex.Unlock()
-	return processCounter
-}
-
-func ClearQueue() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	Links = make(PriorityQueue, 0)
-	heap.Init(&Links)
-	seen = make(map[string]struct{})
-	initialized = true
+// ClearQueue resets the specific queue instance.
+func (uq *UrlQueue) ClearQueue() {
+    uq.mutex.Lock()
+    defer uq.mutex.Unlock()
+    uq.links = make(PriorityQueue, 0)
+    heap.Init(&uq.links)
+	uq.seen = make(map[string]struct{})
 }

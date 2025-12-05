@@ -6,12 +6,12 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"scraper/src/global"
 	"scraper/src/utils"
 	"strings"
-	"time"
 )
 
-func httpGETFromDDG(url string, dnsAddress string) (*http.Response, error) {
+func httpGETFromDDG(url string, scraper *global.ScraperSession) (*http.Response, error) {
   req, err := http.NewRequest("GET", url, nil)
   if err != nil {
     return nil, err
@@ -19,11 +19,7 @@ func httpGETFromDDG(url string, dnsAddress string) (*http.Response, error) {
 
   utils.SetRequestHeaders(req)
 
-  client := http.Client{
-    Timeout: 10 * time.Second,
-    Transport: utils.GetTransportForRequest(dnsAddress),
-  }
-  return client.Do(req)
+  return scraper.Client.Do(req)
 }
 
 
@@ -53,15 +49,15 @@ func debugPrintBody(res *http.Response) ([]byte, error) {
   return bodyBytes, nil
 }
 
-func performDdgSearch(query string, dnsAddress string) {
+func performDdgSearch(query string, scraper *global.ScraperSession) {
   root := "https://duckduckgo.com/html/"
 
   url := fmt.Sprintf("%s?q=%s%s", root, url.QueryEscape(query), "&ia=web")
 
 
-  res, err := httpGETFromDDG(url, dnsAddress)
+  res, err := httpGETFromDDG(url, scraper)
   if err != nil || strings.Contains((*res).Status, "202") {
-    fmt.Println("Error while searching the web", err)
+    fmt.Println("Error while searching the web", err, "\nstatus code:", (*res).Status)
     return
   }
 
@@ -79,8 +75,9 @@ func performDdgSearch(query string, dnsAddress string) {
 
   resultsDiv := utils.FindDivByID(rootHtml, "links")
   if resultsDiv == nil {
+    fmt.Println("no results!")
     return
   }
 
-  utils.FindLinks(resultsDiv, true, 0, query)
+  utils.FindLinks(resultsDiv, true, 0, query, scraper)
 }

@@ -2,31 +2,16 @@ package utils
 
 import (
 	"io"
-	"net/http"
 	"scraper/src/customTypes"
-	"scraper/src/urlManager"
+	"scraper/src/global"
 	"strings"
-	"sync"
-	"time"
 
 	"golang.org/x/net/html"
 )
 
-var (
-	Output []customTypes.Page = []customTypes.Page{}
-	OutMutex sync.Mutex
-)
+func sendRequest(url string, scraper *global.ScraperSession) (*html.Node, customTypes.Page) {
 
-var ScrapeWg sync.WaitGroup
-
-func sendRequest(url string, dnsAddress string) (*html.Node, customTypes.Page) {
-
-	client := http.Client{
-		Timeout: 10 * time.Second,
-		Transport: GetTransportForRequest(dnsAddress),
-	}
-
-	resp, err := client.Get(url)
+	resp, err := scraper.Client.Get(url)
 
 	if err != nil {
 		return nil, customTypes.Page{}
@@ -52,10 +37,10 @@ func sendRequest(url string, dnsAddress string) (*html.Node, customTypes.Page) {
 	return rootNode, page
 }
 
-func Scrape(link *customTypes.StoreUrl, query string, dnsAddress string) bool {
+func Scrape(link *customTypes.StoreUrl, query string, scraper *global.ScraperSession) bool {
 
-	urlManager.IncrementProcessCounter()
-	rootNode, page := sendRequest(link.Url, dnsAddress)
+	scraper.Queue.IncrementProcessCounter()
+	rootNode, page := sendRequest(link.Url, scraper)
 
 	if rootNode == nil {
 		return false
@@ -67,11 +52,11 @@ func Scrape(link *customTypes.StoreUrl, query string, dnsAddress string) bool {
 		return false
 	}
 
-	OutMutex.Lock()
-	Output = append(Output, page)
-	OutMutex.Unlock()
+	scraper.Mutex.Lock()
+	scraper.Output = append(scraper.Output, page)
+	scraper.Mutex.Unlock()
 
-	FindLinks(rootNode, false, link.Level+1, query)
+	FindLinks(rootNode, false, link.Level+1, query, scraper)
 
 	return true
 }

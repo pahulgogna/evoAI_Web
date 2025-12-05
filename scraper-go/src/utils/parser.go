@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"scraper/src/global"
 	"scraper/src/urlManager"
 	"strings"
 
@@ -37,7 +38,7 @@ func ParseHtmlToContent(htmlString string) string {
 	return normalizeWhitespace(sb.String())
 }
 
-func FindLinks(n *html.Node, filterDDG bool, level int, query string) {
+func FindLinks(n *html.Node, filterDDG bool, level int, query string, scraper *global.ScraperSession) {
 
 	if isSkipableDiv(n) {
 		return
@@ -53,13 +54,13 @@ func FindLinks(n *html.Node, filterDDG bool, level int, query string) {
 				}
 
 				if isValid {
-					urlManager.AddUrl(url, query, level)
+					scraper.Queue.AddUrl(url, query, level)
 				}
 			}
 		}
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		FindLinks(c, filterDDG, level, query)
+		FindLinks(c, filterDDG, level, query, scraper)
 	}
 }

@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"scraper/src/config"
 	"scraper/src/customTypes"
+	"scraper/src/global"
 	"scraper/src/searching"
-	"scraper/src/urlManager"
 	"scraper/src/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,9 +40,14 @@ func getSearchResults(c *gin.Context) {
 
 	fmt.Printf("/search : query-> %s, results-> %d \n", req.Query, req.RequiredResults)
 
-	c.IndentedJSON(200, searching.Search(req.Query, req.RequiredResults, req.DnsAddress))
-	urlManager.ClearQueue()
-	utils.OutMutex.Lock()
-	utils.Output = []customTypes.Page{}
-	utils.OutMutex.Unlock()
+	scraper := global.NewScraperSession()
+	scraper.Client = &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: utils.GetTransportForRequest(req.DnsAddress),
+	}
+
+	c.IndentedJSON(200, searching.Search(req.Query, req.RequiredResults, scraper))
+	
+	scraper.Queue.ClearQueue()
+	scraper.ClearQueue()
 }
