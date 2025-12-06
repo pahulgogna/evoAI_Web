@@ -2,9 +2,10 @@ package utils
 
 import (
 	"io"
-	"scraper/src/customTypes"
-	"scraper/src/global"
 	"strings"
+
+	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
 
 	"golang.org/x/net/html"
 )
@@ -45,9 +46,9 @@ func Scrape(link *customTypes.StoreUrl, query string, scraper *global.ScraperSes
 	if rootNode == nil {
 		return false
 	}
-	
+
 	page.Body = ParseHtmlToContent(page.Body)
-	
+
 	if len(page.Body) <= 200 {
 		return false
 	}
@@ -107,5 +108,3 @@ func normalizeWhitespace(input string) string {
 	fields := strings.Fields(input)
 	return strings.Join(fields, " ")
 }
-
-

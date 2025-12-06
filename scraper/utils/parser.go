@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"scraper/src/global"
-	"scraper/src/urlManager"
 	"strings"
+
+	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/urlManager"
 
 	"golang.org/x/net/html"
 )

@@ -2,9 +2,10 @@ package global
 
 import (
 	"net/http"
-	"scraper/src/customTypes"
-	"scraper/src/urlManager"
 	"sync"
+
+	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/urlManager"
 )
 
 type ScraperSession struct {
@@ -22,7 +23,7 @@ func NewScraperSession() *ScraperSession {
 		Seen:   make(map[string]struct{}),
 		Mutex:  sync.Mutex{},
 		Queue:  urlManager.NewUrlQueue(),
-		Wg: sync.WaitGroup{},
+		Wg:     sync.WaitGroup{},
 	}
 }
 

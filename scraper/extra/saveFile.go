@@ -1,14 +1,15 @@
 package extra
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"scraper/src/customTypes"
-	"encoding/json"
+
+	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
 )
 
 var invalidFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
@@ -61,10 +62,10 @@ func WritePageToFile(p customTypes.Page) (string, error) {
 }
 
 func GetJSON(data interface{}) string {
-    jsonBytes, err := json.MarshalIndent(data, "", "  ")
-    if err != nil {
-        return ""
-    }
+	jsonBytes, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return ""
+	}
 
-    return string(jsonBytes)
+	return string(jsonBytes)
 }

@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"scraper/src/config"
-	"scraper/src/customTypes"
-	"scraper/src/global"
-	"scraper/src/searching"
-	"scraper/src/utils"
 	"time"
+
+	"github.com/pahulgogna/evoAI_Web/scraper/src/config"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/searching"
+	"github.com/pahulgogna/evoAI_Web/scraper/src/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,10 +18,10 @@ func main() {
 
 	config.Init()
 
-    router := gin.Default()
-    router.POST("/search", getSearchResults)
+	router := gin.Default()
+	router.POST("/search", getSearchResults)
 
-    router.Run(fmt.Sprintf("0.0.0.0:%s", config.PORT))
+	router.Run(fmt.Sprintf("0.0.0.0:%s", config.PORT))
 }
 
 func getSearchResults(c *gin.Context) {
@@ -45,12 +46,12 @@ func getSearchResults(c *gin.Context) {
 
 	scraper := global.NewScraperSession()
 	scraper.Client = &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout:   10 * time.Second,
 		Transport: utils.GetTransportForRequest(req.DnsAddress),
 	}
 
 	c.IndentedJSON(200, searching.Search(req.Query, req.RequiredResults, scraper))
-	
+
 	scraper.Queue.ClearQueue()
 	scraper.ClearQueue()
 }
