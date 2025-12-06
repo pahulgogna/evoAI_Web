@@ -14,10 +14,13 @@ import (
 )
 
 func main() {
+
+	config.Init()
+
     router := gin.Default()
     router.POST("/search", getSearchResults)
 
-    router.Run(fmt.Sprintf("0.0.0.0:%d", config.PORT))
+    router.Run(fmt.Sprintf("0.0.0.0:%s", config.PORT))
 }
 
 func getSearchResults(c *gin.Context) {
