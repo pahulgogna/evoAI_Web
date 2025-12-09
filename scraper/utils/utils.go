@@ -4,8 +4,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
+	customTypes "github.com/pahulgogna/evoAI_Web/scraper/customTypes"
+	global "github.com/pahulgogna/evoAI_Web/scraper/global"
 
 	"golang.org/x/net/html"
 )

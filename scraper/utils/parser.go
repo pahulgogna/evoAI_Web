@@ -3,8 +3,8 @@ package utils
 import (
 	"strings"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/urlManager"
+	global "github.com/pahulgogna/evoAI_Web/scraper/global"
+	urlManager "github.com/pahulgogna/evoAI_Web/scraper/urlManager"
 
 	"golang.org/x/net/html"
 )

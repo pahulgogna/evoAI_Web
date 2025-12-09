@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
+	customTypes "github.com/pahulgogna/evoAI_Web/scraper/customTypes"
 )
 
 var invalidFilenameChars = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)

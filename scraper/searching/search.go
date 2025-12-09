@@ -1,10 +1,10 @@
 package searching
 
 import (
-	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/extra"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/utils"
+	customTypes "github.com/pahulgogna/evoAI_Web/scraper/customTypes"
+	extra "github.com/pahulgogna/evoAI_Web/scraper/extra"
+	global "github.com/pahulgogna/evoAI_Web/scraper/global"
+	utils "github.com/pahulgogna/evoAI_Web/scraper/utils"
 )
 
 func Search(query string, totalResults int, scraper *global.ScraperSession) string {

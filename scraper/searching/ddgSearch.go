@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/utils"
+	global "github.com/pahulgogna/evoAI_Web/scraper/global"
+	utils "github.com/pahulgogna/evoAI_Web/scraper/utils"
 )
 
 func httpGETFromDDG(url string, scraper *global.ScraperSession) (*http.Response, error) {

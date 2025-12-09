@@ -14,7 +14,6 @@ func main() {
 	router.GET("/ping", ping)
 
 	router.Run(fmt.Sprintf("0.0.0.0:%s", "8080"))
-
 }
 
 func ping(c *gin.Context) {

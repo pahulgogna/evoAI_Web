@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/config"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/global"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/searching"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/utils"
+	"github.com/pahulgogna/evoAI_Web/scraper/config"
+	"github.com/pahulgogna/evoAI_Web/scraper/customTypes"
+	"github.com/pahulgogna/evoAI_Web/scraper/global"
+	"github.com/pahulgogna/evoAI_Web/scraper/searching"
+	"github.com/pahulgogna/evoAI_Web/scraper/utils"
 
 	"github.com/gin-gonic/gin"
 )

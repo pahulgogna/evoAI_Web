@@ -4,7 +4,7 @@ import (
 	"container/heap"
 	"sync"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
+	customTypes "github.com/pahulgogna/evoAI_Web/scraper/customTypes"
 )
 
 // PriorityQueue implements heap.Interface and holds Items.

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/pahulgogna/evoAI_Web/scraper/src/customTypes"
-	"github.com/pahulgogna/evoAI_Web/scraper/src/urlManager"
+	customTypes "github.com/pahulgogna/evoAI_Web/scraper/customTypes"
+	urlManager "github.com/pahulgogna/evoAI_Web/scraper/urlManager"
 )
 
 type ScraperSession struct {
