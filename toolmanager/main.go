@@ -16,6 +16,7 @@ import (
 func main() {
 
 	utils.Init()
+	config.Init()
 
 	router := gin.Default()
 
