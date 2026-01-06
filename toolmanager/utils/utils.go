@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/pahulgogna/evoAI_Web/toolmanager/config"
 )
 
@@ -17,4 +18,8 @@ func Init() {
 		f.WriteString("tools: ")
 
 	}
+}
+
+func SendError(status int, data string, c *gin.Context) {
+	c.AbortWithError(status, fmt.Errorf("{data:%s}", data))
 }
