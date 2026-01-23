@@ -5,3 +5,4 @@ urlmanager
 vendor
 .env
 tools.yml
+.env

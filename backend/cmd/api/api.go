@@ -1,0 +1,39 @@
+package api
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
+	"github.com/pahulgogna/evoAI_Web/backend/service/toolmanager"
+	"github.com/pahulgogna/evoAI_Web/backend/service/user"
+)
+
+type ApiServer struct {
+	addr string
+	db   *sqlx.DB
+}
+
+func NewServer(addr string, db *sqlx.DB) *ApiServer {
+	return &ApiServer{
+		addr: addr,
+		db:   db,
+	}
+}
+
+func (s *ApiServer) Run() error {
+
+	router := mux.NewRouter()
+	subrouter := router.PathPrefix("/api/v1").Subrouter()
+
+	toolsHandler := toolmanager.NewHandler()
+	toolsHandler.RegisterRoutes(subrouter)
+
+	userStore := user.NewStore(s.db)
+	userHandler := user.NewHandler(userStore)
+	userHandler.RegisterRoutes(subrouter)
+
+	log.Println("server started on:", s.addr)
+	return http.ListenAndServe(s.addr, router)
+}
