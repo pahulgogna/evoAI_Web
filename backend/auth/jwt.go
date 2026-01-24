@@ -99,7 +99,7 @@ func WithJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
 }
 
 func WithAdminAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 
 		user := GetUserFromContext(r.Context())
 		if user == nil {
@@ -146,9 +146,8 @@ func GetUserFromContext(ctx context.Context) *types.JWTUser {
 		isAdmin = false
 	}
 
-
 	return &types.JWTUser{
-		Id: userId,
+		Id:      userId,
 		IsAdmin: isAdmin,
 	}
 }

@@ -52,7 +52,7 @@ func (h *Handler) createNewUser(w http.ResponseWriter, r *http.Request) {
 
 	jwtUser := auth.GetUserFromContext(r.Context())
 	if !jwtUser.IsAdmin {
-		
+
 		return
 	}
 
