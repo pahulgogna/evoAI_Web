@@ -24,23 +24,17 @@ func NewHandler(userStore types.UserStore) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/user/{id}", h.getUser).Methods(http.MethodGet)
-	router.HandleFunc("/user/register", h.createNewUser).Methods(http.MethodPost)
-	router.HandleFunc("/user{id}", h.removeUser).Methods(http.MethodDelete)
+	router.HandleFunc("/user", auth.WithJWTAuth(h.getUser)).Methods(http.MethodGet)
+	router.HandleFunc("/user/register", auth.WithJWTAuth(auth.WithAdminAuth(h.createNewUser))).Methods(http.MethodPost)
+	router.HandleFunc("/user/{id}", auth.WithJWTAuth(h.removeUser)).Methods(http.MethodDelete)
 	router.HandleFunc("/user/login", h.loginUser).Methods(http.MethodPost)
 }
 
-// TODO: protect
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userId := vars["id"]
 
-	if userId == "" {
-		utils.WriteErrorResponse(w, http.StatusNotFound, fmt.Errorf("id not found"))
-		return
-	}
+	jwtUser := auth.GetUserFromContext(r.Context())
 
-	user, err := h.store.GetUserById(userId)
+	user, err := h.store.GetUserById(jwtUser.Id)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusNotFound, fmt.Errorf("user not found"))
 		return
@@ -54,8 +48,13 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// TODO: protect
 func (h *Handler) createNewUser(w http.ResponseWriter, r *http.Request) {
+
+	jwtUser := auth.GetUserFromContext(r.Context())
+	if !jwtUser.IsAdmin {
+		
+		return
+	}
 
 	var payload types.RegisterUser
 	if err := utils.ParseBodyJSON(r, &payload); err != nil {
@@ -120,7 +119,7 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 
 	secret := config.Envs.JWTSecret
 
-	tokenString, err := auth.CreateJWT([]byte(secret), user.ID)
+	tokenString, err := auth.CreateJWT([]byte(secret), user)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, err)
 		return
@@ -129,13 +128,23 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJsonResponse(w, http.StatusOK, map[string]string{"token": tokenString})
 }
 
-// TODO: protect
 func (h *Handler) removeUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId := vars["id"]
 
 	if userId == "" {
 		utils.WriteErrorResponse(w, http.StatusNotFound, fmt.Errorf("id not found"))
+		return
+	}
+
+	user := auth.GetUserFromContext(r.Context())
+	if user == nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Errorf("unable to verify"))
+		return
+	}
+
+	if !(user.Id == userId || user.IsAdmin) {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Errorf("permission denied"))
 		return
 	}
 

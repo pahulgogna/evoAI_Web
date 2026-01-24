@@ -47,6 +47,11 @@ type ResponseUser struct {
 	IsAdmin bool   `json:"is_admin" db:"is_admin"`
 }
 
+type JWTUser struct {
+	Id      string
+	IsAdmin bool
+}
+
 type CreateTool struct {
 	Name         string   `json:"name" validate:"required"`
 	Description  string   `json:"description" validate:"required"`
@@ -54,3 +59,4 @@ type CreateTool struct {
 	Code         string   `json:"code" validate:"required"`
 	Dependencies []string `json:"dependencies"`
 }
+
