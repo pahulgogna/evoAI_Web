@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
+	"github.com/pahulgogna/evoAI_Web/backend/service/chat"
 	"github.com/pahulgogna/evoAI_Web/backend/service/toolmanager"
 	"github.com/pahulgogna/evoAI_Web/backend/service/user"
 )
@@ -34,6 +35,10 @@ func (s *ApiServer) Run() error {
 	toolStore := toolmanager.NewStore(s.db)
 	toolsHandler := toolmanager.NewHandler(toolStore)
 	toolsHandler.RegisterRoutes(subrouter)
+
+	chatStore := chat.NewStore(s.db)
+	chatHandler := chat.NewHandler(chatStore)
+	chatHandler.RegisterRoutes(subrouter)
 
 	log.Println("server started on:", s.addr)
 	return http.ListenAndServe(s.addr, router)

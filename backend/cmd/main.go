@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/pahulgogna/evoAI_Web/backend/cmd/api"
 	"github.com/pahulgogna/evoAI_Web/backend/config"
@@ -13,20 +12,12 @@ import (
 
 func main() {
 
-	db, err := db.NewMySqlStorage(mysql.Config{
-		User:                 config.Envs.DBUser,
-		Passwd:               config.Envs.DBPassword,
-		Addr:                 config.Envs.DBAddress,
-		DBName:               config.Envs.DBName,
-		Net:                  "tcp",
-		AllowNativePasswords: true,
-		ParseTime:            true,
-	})
+	db, err := db.NewPostgresStorage()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	xdb := sqlx.NewDb(db, "mysql")
+	xdb := sqlx.NewDb(db, "postgres")
 
 	initDb(xdb)
 

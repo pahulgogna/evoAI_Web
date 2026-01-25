@@ -17,6 +17,10 @@ type ToolStore interface {
 	DeleteTool(id string, userId string) error
 }
 
+type ChatStore interface {
+	NewChat(userId string) (int32, error)
+}
+
 type User struct {
 	ID        int       `json:"id" db:"id"`
 	Name      string    `json:"name" db:"name"`
@@ -85,4 +89,19 @@ type UpdateTool struct {
 	Language     *string   `json:"language"`
 	Code         *string   `json:"code"`
 	Dependencies *[]string `json:"dependencies"`
+}
+
+type Message struct {
+	ID        int       `json:"id" db:"id"`
+	ChatId    int       `json:"chat_id" db:"chat_id"`
+	By        string    `json:"by" db:"by"`
+	Data      string    `json:"data" db:"data"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+}
+
+type Chat struct {
+	ID        int       `json:"id" db:"id"`
+	UserId    int       `json:"user_id" db:"user_id"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	Messages  []Message `json:"messages"`
 }

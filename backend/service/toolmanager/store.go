@@ -20,7 +20,7 @@ func NewStore(db *sqlx.DB) *Store {
 
 func (s *Store) GetToolByIdAndUserId(id string, userId string) (*types.Tool, error) {
 	dt := new(types.DBTool)
-	if err := s.db.Get(dt, "SELECT * FROM tools WHERE id = ? AND user_id = ?;", id, userId); err != nil {
+	if err := s.db.Get(dt, "SELECT * FROM tools WHERE id = $1 AND user_id = $2;", id, userId); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func (s *Store) GetToolByIdAndUserId(id string, userId string) (*types.Tool, err
 func (s *Store) GetToolsByUserId(userId string) (*[]types.Tool, error) {
 
 	dbTools := []types.DBTool{}
-	if err := s.db.Select(&dbTools, "SELECT * FROM tools WHERE user_id = ?;", userId); err != nil {
+	if err := s.db.Select(&dbTools, "SELECT * FROM tools WHERE user_id = $1;", userId); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +72,7 @@ func (s *Store) GetToolsByUserId(userId string) (*[]types.Tool, error) {
 }
 
 func (s *Store) CreateToolByUser(tool *types.CreateTool, userId string) error {
-	_, err := s.db.Exec("INSERT INTO tools (name, description, language, code, dependencies, user_id) VALUES (?, ?, ?, ?, ?, ?)",
+	_, err := s.db.Exec("INSERT INTO tools (name, description, language, code, dependencies, user_id) VALUES ($1, $2, $3, $4, $5, $6)",
 		tool.Name,
 		tool.Description,
 		tool.Language,
@@ -121,7 +121,7 @@ func (s *Store) UpdateTool(tool *types.UpdateTool, id string, userId string) err
 	query += " WHERE id = ? AND user_id = ?"
 	args = append(args, id, userId)
 
-	result, err := s.db.Exec(query, args...)
+	result, err := s.db.Exec(s.db.Rebind(query), args...)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (s *Store) UpdateTool(tool *types.UpdateTool, id string, userId string) err
 }
 
 func (s *Store) DeleteTool(id string, userId string) error {
-	result, err := s.db.Exec("DELETE FROM tools WHERE id = ? AND user_id = ?", id, userId)
+	result, err := s.db.Exec("DELETE FROM tools WHERE id = $1 AND user_id = $2", id, userId)
 	if err != nil {
 		return err
 	}

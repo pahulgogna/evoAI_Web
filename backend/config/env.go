@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -14,6 +13,7 @@ type Config struct {
 	DBUser                 string
 	DBPassword             string
 	DBAddress              string
+	DBPort                 string
 	DBName                 string
 	JWTExpirationInSeconds int64
 	JWTSecret              string
@@ -29,7 +29,8 @@ func initConfig() Config {
 		Port:                   getEnv("PORT", "8080"),
 		DBUser:                 getEnv("DB_USER", "root"),
 		DBPassword:             getEnv("DB_PASSWORD", "mypassword"),
-		DBAddress:              fmt.Sprintf("%s:%s", getEnv("DB_ADDRESS", "127.0.0.1"), getEnv("DB_PORT", "3306")),
+		DBAddress:              getEnv("DB_ADDRESS", "127.0.0.1"),
+		DBPort:                 getEnv("DB_PORT", "5432"),
 		DBName:                 getEnv("DB_NAME", "evoai"),
 		JWTExpirationInSeconds: getEnvInteger("JWT_EXP", 60*60*24*7),
 		JWTSecret:              getEnv("JWT_SECRET", "not-a-secret"),

@@ -18,7 +18,7 @@ func NewStore(db *sqlx.DB) *Store {
 func (s *Store) GetUserById(id string) (*types.User, error) {
 	user := new(types.User)
 
-	if err := s.db.Get(user, "SELECT * FROM users WHERE id = ?;", id); err != nil {
+	if err := s.db.Get(user, "SELECT * FROM users WHERE id = $1;", id); err != nil {
 		return nil, err
 	}
 
@@ -28,7 +28,7 @@ func (s *Store) GetUserById(id string) (*types.User, error) {
 func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 	user := new(types.User)
 
-	if err := s.db.Get(user, "SELECT * FROM users WHERE email = ?;", email); err != nil {
+	if err := s.db.Get(user, "SELECT * FROM users WHERE email = $1;", email); err != nil {
 		return nil, err
 	}
 
@@ -36,11 +36,11 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 }
 
 func (s *Store) CreateUser(user *types.User) error {
-	_, err := s.db.Exec("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", user.Name, user.Email, user.Password)
+	_, err := s.db.Exec("INSERT INTO users (name, email, password) VALUES ($1, $2, $3)", user.Name, user.Email, user.Password)
 	return err
 }
 
 func (s *Store) RemoveUser(id string) error {
-	_, err := s.db.Exec("DELETE FROM users WHERE id = ?;", id)
+	_, err := s.db.Exec("DELETE FROM users WHERE id = $1;", id)
 	return err
 }
