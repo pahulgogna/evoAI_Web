@@ -1,2 +1,2 @@
-DROP TABLE chat;
 DROP TABLE message;
+DROP TABLE chat;

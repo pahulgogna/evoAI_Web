@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/pahulgogna/evoAI_Web/backend/auth"
 	"github.com/pahulgogna/evoAI_Web/backend/types"
@@ -34,6 +35,12 @@ func (h *Handler) createTool(w http.ResponseWriter, r *http.Request) {
 	var payload types.CreateTool
 	if err := utils.ParseBodyJSON(r, &payload); err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteErrorResponse(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
 		return
 	}
 
@@ -113,6 +120,12 @@ func (h *Handler) updateTool(w http.ResponseWriter, r *http.Request) {
 	var payload types.UpdateTool
 	if err := utils.ParseBodyJSON(r, &payload); err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteErrorResponse(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
 		return
 	}
 

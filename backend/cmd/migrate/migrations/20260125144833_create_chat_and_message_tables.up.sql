@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS chat (
     id SERIAL,
+    name VARCHAR(100) DEFAULT 'New Chat',
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS message (
@@ -13,5 +14,5 @@ CREATE TABLE IF NOT EXISTS message (
     data TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    FOREIGN KEY (chat_id) REFERENCES chat (id)
+    FOREIGN KEY (chat_id) REFERENCES chat (id) ON DELETE CASCADE
 );

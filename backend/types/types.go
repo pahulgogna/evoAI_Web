@@ -18,7 +18,12 @@ type ToolStore interface {
 }
 
 type ChatStore interface {
-	NewChat(userId string) (int32, error)
+	StoreMessage(userId string, messages *StoreMessage) (int32, error)
+	GetAllChats(userId string) (*[]Chat, error)
+	NewChatWithMessage(userId string, message *StoreMessage) (*NewChatWithMessageResponse, error)
+	GetAllChatMessages(chatId string, userId string) (*[]Message, error)
+	DeleteMessage(userId string, messageId string) error
+	DeleteChat(userId string, chatId string) error
 }
 
 type User struct {
@@ -92,7 +97,7 @@ type UpdateTool struct {
 }
 
 type Message struct {
-	ID        int       `json:"id" db:"id"`
+	ID        int32     `json:"id" db:"id"`
 	ChatId    int       `json:"chat_id" db:"chat_id"`
 	By        string    `json:"by" db:"by"`
 	Data      string    `json:"data" db:"data"`
@@ -100,8 +105,21 @@ type Message struct {
 }
 
 type Chat struct {
-	ID        int       `json:"id" db:"id"`
+	ID        int16     `json:"id" db:"id"`
+	Name      string    `json:"name" db:"name"`
 	UserId    int       `json:"user_id" db:"user_id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	Messages  []Message `json:"messages"`
+}
+
+type StoreMessage struct {
+	ChatId        int16  `json:"chat_id" db:"chat_id" validate:"required"`
+	By            string `json:"by" db:"by" validate:"required"`
+	Data          string `json:"data" db:"data" validate:"required"`
+	CreateNewChat bool   `json:"create_new_chat"`
+}
+
+type NewChatWithMessageResponse struct {
+	ChatId    int16 `json:"chat_id"`
+	MessageId int32 `json:"message_id"`
 }
