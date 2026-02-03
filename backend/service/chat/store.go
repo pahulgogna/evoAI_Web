@@ -28,7 +28,7 @@ func (s *Store) StoreMessage(userId string, message *types.StoreMessage) (int32,
 		return -1, fmt.Errorf("chat not found")
 	}
 
-	rows, err := s.db.Query("INSERT INTO message (chat_id, by, data) VALUES ($1, $2, $3) RETURNING id;", message.ChatId, message.By, message.Data)
+	rows, err := s.db.Query("INSERT INTO message (chat_id, role, content) VALUES ($1, $2, $3) RETURNING id;", message.ChatId, message.Role, message.Content)
 	if err != nil {
 		return -1, err
 	}
@@ -59,7 +59,7 @@ func (s *Store) NewChatWithMessage(userId string, message *types.StoreMessage) (
 		chatQueryRows.Scan(&chatId)
 	}
 
-	messageQueryRows, err := tx.Query("INSERT INTO message (chat_id, by, data) VALUES ($1, $2, $3) RETURNING id;", chatId, message.By, message.Data)
+	messageQueryRows, err := tx.Query("INSERT INTO message (chat_id, role, content) VALUES ($1, $2, $3) RETURNING id;", chatId, message.Role, message.Content)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -88,7 +88,7 @@ func (s *Store) GetAllChats(userId string) (*[]types.Chat, error) {
 func (s *Store) GetAllChatMessages(chatId string, userId string) (*[]types.Message, error) {
 
 	var messages []types.Message
-	err := s.db.Select(&messages, "SELECT m.id, m.chat_id, m.by, m.data, m.created_at FROM chat c INNER JOIN message m ON c.id = m.chat_id WHERE c.id = $1 AND c.user_id = $2;", chatId, userId)
+	err := s.db.Select(&messages, "SELECT m.id, m.chat_id, m.role, m.content, m.created_at FROM chat c INNER JOIN message m ON c.id = m.chat_id WHERE c.id = $1 AND c.user_id = $2;", chatId, userId)
 	if err != nil {
 		return nil, err
 	}

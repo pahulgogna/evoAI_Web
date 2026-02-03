@@ -6,7 +6,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
+	"github.com/pahulgogna/evoAI_Web/backend/llms/ollama"
 	"github.com/pahulgogna/evoAI_Web/backend/service/chat"
+	"github.com/pahulgogna/evoAI_Web/backend/service/llm"
 	"github.com/pahulgogna/evoAI_Web/backend/service/toolmanager"
 	"github.com/pahulgogna/evoAI_Web/backend/service/user"
 )
@@ -39,6 +41,10 @@ func (s *ApiServer) Run() error {
 	chatStore := chat.NewStore(s.db)
 	chatHandler := chat.NewHandler(chatStore)
 	chatHandler.RegisterRoutes(subrouter)
+
+	llmInterface := ollama.NewOllamaInterface()
+	llmHandler := llm.NewHandler(chatStore, llmInterface)
+	llmHandler.RegisterRoutes(subrouter)
 
 	log.Println("server started on:", s.addr)
 	return http.ListenAndServe(s.addr, router)

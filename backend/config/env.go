@@ -17,6 +17,7 @@ type Config struct {
 	DBName                 string
 	JWTExpirationInSeconds int64
 	JWTSecret              string
+	OllamaHost             string
 }
 
 var Envs Config = initConfig()
@@ -34,6 +35,7 @@ func initConfig() Config {
 		DBName:                 getEnv("DB_NAME", "evoai"),
 		JWTExpirationInSeconds: getEnvInteger("JWT_EXP", 60*60*24*7),
 		JWTSecret:              getEnv("JWT_SECRET", "not-a-secret"),
+		OllamaHost:             getEnv("OLLAMA_HOST", "127.0.0.1:11434"),
 	}
 }
 

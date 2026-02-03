@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS chat (
 CREATE TABLE IF NOT EXISTS message (
     id SERIAL,
     chat_id INT NOT NULL,
-    by VARCHAR(50) NOT NULL,
-    data TEXT,
+    role VARCHAR(50) NOT NULL,
+    content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (chat_id) REFERENCES chat (id) ON DELETE CASCADE

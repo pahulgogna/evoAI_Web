@@ -27,3 +27,19 @@ func WriteJsonResponse(w http.ResponseWriter, status int, v any) error {
 func WriteErrorResponse(w http.ResponseWriter, status int, err error) error {
 	return WriteJsonResponse(w, status, map[string]string{"error": err.Error()})
 }
+
+func SetEventStreamHeaders(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+func WriteToEventStream(w http.ResponseWriter, event string, data string) error {
+	_, err := fmt.Fprintf(w, "event:%s\ndata:%s\n\n", event, data)
+	if err != nil {
+		return err
+	}
+	w.(http.Flusher).Flush()
+	return nil
+}

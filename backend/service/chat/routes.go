@@ -45,6 +45,11 @@ func (h *Handler) storeMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, ok := types.ValidMessageSenders[payload.Role]; !ok {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, fmt.Errorf("invalid message sender"))
+		return
+	}
+
 	if payload.CreateNewChat {
 		createdChatAndMessage, err := h.store.NewChatWithMessage(user.Id, &payload)
 		if err != nil {
