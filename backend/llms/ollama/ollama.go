@@ -21,8 +21,10 @@ func (o *Ollama) StreamMessage(ctx context.Context, messages *[]types.Message, m
 
 	client, err := api.ClientFromEnvironment()
 	if err != nil {
+		close(out)
 		return nil, err
 	}
+	
 
 	go func(ctx context.Context, messages *[]types.Message, model string) {
 		defer close(out)
@@ -57,3 +59,5 @@ func (o *Ollama) StreamMessage(ctx context.Context, messages *[]types.Message, m
 
 	return out, nil
 }
+
+
